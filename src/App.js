@@ -4,6 +4,7 @@ import { Registration } from './pages/Registration';
 import { Login } from './pages/Login';
 import { EnterRoom } from './pages/EnterRoom';
 import { CreateRoom } from './pages/CreateRoom';
+import { RoomStudent } from './pages/RoomStudent';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path='/about' element={<About />}/>
           <Route path='/enterRoom' element={<EnterRoom />}/>
           <Route path='/createRoom' element={<CreateRoom />}/>
+          <Route path='/lesson' element={<RoomStudent />}/>
         </Routes>
       </BrowserRouter>
     </div>

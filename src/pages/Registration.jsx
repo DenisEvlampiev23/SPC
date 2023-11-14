@@ -10,6 +10,9 @@ export const Registration = () => {
 
   const textAnimate = useAnimationControls();
   const fieldAnimate = useAnimationControls();
+  const textLeftAnimate = useAnimationControls();
+  const textRightAnimate = useAnimationControls();
+  const switchAnimate = useAnimationControls();
 
   const [nameText, setNameText] = useState('');
   const [passwordText1, setPasswordText1] = useState('');
@@ -94,10 +97,38 @@ export const Registration = () => {
             className="text-center text-neutral-500 text-sm mt-1 font-normal font-montserrat">
               Пароль должен быть не менее 7 символов</motion.div>
         </div>
+
+        {/*Switch*/}
+        <div className='w-80 h-11 mt-5 rounded-3xl border border-brand flex justify-around relative'>
+          <motion.div 
+            className="my-auto w-1/2 h-full flex justify-center items-center cursor-default select-none text-white text-lg z-20 font-medium font-montserrat"
+            animate={textLeftAnimate}
+            onClick={() => {
+              switchAnimate.start({left: '0%'});
+              textLeftAnimate.start({color: '#FFFFFF'})
+              textRightAnimate.start({color: '#1E1E1E'});
+            }}
+            whileTap={{scale: 0.95}}
+            >Ученик</motion.div>
+          <motion.div 
+            className="my-auto w-1/2 h-full flex justify-center cursor-default items-center select-none text-stone-900 text-lg z-20 font-medium font-montserrat"
+            animate={textRightAnimate}
+            onClick={() => {
+              switchAnimate.start({left: '50%'});
+              textRightAnimate.start({color: '#FFFFFF'})
+              textLeftAnimate.start({color: '#1E1E1E'});
+            }}
+            whileTap={{scale: 1.05}}
+            >Учитель</motion.div>
+          <motion.div 
+            initial={{left: '0%'}} 
+            animate={switchAnimate}
+            className='w-40 h-full rounded-3xl overflow-hidden z-1 absolute bg-brand shadow-md'/>
+        </div>
         
         {/*Buttons*/}
         <div className='mt-8 grid justify-items-center'>
-            <Button text='Зарегестрироваться' onClick={register}/>
+            <Button text='Зарегестрироваться' onClick={register} className='w-80'/>
             <ButtonText text='У меня есть аккаунт' onClick={() => {navigate('/')}} className="mt-3"/>
             <ButtonText text='Что это?' onClick={() => navigate('/about')} className="mt-3"/>
         </div>

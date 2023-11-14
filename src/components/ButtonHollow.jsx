@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion';
 
-export const ButtonHollow = ({className, onClick=()=>{}, text='Кнопка'}) => {
+export const ButtonHollow = ({className, onClick=()=>{}, text='Кнопка', color='#4355FF'}) => {
   
   return (
     <motion.div className={className} layout whileTap={{scale: 0.9}} whileHover={{scale: 0.98}}>
         <button 
-            className="w-80 h-11 rounded-3xl border-2 border-brand" 
+            style={{borderColor: color}}
+            className="w-full h-11 rounded-3xl border-2" 
             onClick={() => {
                 onClick();
             }}>

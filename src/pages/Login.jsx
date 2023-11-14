@@ -15,6 +15,14 @@ export const Login = () => {
   const [borderPassword, setBorderPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  function login(){
+    //login
+    if(nameText === 'create')
+      navigate('/createRoom');
+    else 
+      navigate('/enterRoom');
+  }
+
   return (
     <div className='xs:bg-back w-screen h-screen grid justify-items-center'>
       <div className='my-auto sm:m-auto px-6 py-12 rounded-xl bg-white xs:shadow-lg'>
@@ -56,8 +64,8 @@ export const Login = () => {
         
         {/*Buttons*/}
         <div className='mt-8 grid justify-items-center'>
-            <Button text='Войти'/>
-            <ButtonHollow text='Регистрация' onClick={() => {navigate('/registration')}} className="mt-3"/>
+            <Button text='Войти' onClick={login} className='w-80'/>
+            <ButtonHollow text='Регистрация' onClick={() => {navigate('/registration')}} className="mt-3 w-80"/>
             <ButtonText text='Что это?' onClick={() => navigate('/about')} className="mt-3"/>
         </div>
       </div>
