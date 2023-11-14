@@ -5,7 +5,7 @@ export const ButtonHollow = ({className, onClick=()=>{}, text='Кнопка'}) =
   return (
     <motion.div className={className} layout whileTap={{scale: 0.9}} whileHover={{scale: 0.98}}>
         <button 
-            className="w-80 h-[45px] rounded-3xl border-2 border-brand" 
+            className="w-80 h-11 rounded-3xl border-2 border-brand" 
             onClick={() => {
                 onClick();
             }}>

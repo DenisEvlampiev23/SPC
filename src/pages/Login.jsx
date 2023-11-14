@@ -16,8 +16,8 @@ export const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <div className='bg-back w-screen h-screen grid justify-items-center'>
-      <motion.div className='m-auto px-6 py-12 rounded-xl bg-white shadow-lg'>
+    <div className='xs:bg-back w-screen h-screen grid justify-items-center'>
+      <div className='my-auto sm:m-auto px-6 py-12 rounded-xl bg-white xs:shadow-lg'>
         <Logo className='mt-2'/>
 
         {/*Inputs*/}
@@ -60,7 +60,7 @@ export const Login = () => {
             <ButtonHollow text='Регистрация' onClick={() => {navigate('/registration')}} className="mt-3"/>
             <ButtonText text='Что это?' className="mt-3"/>
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }
