@@ -15,7 +15,7 @@ export const CreateRoom = () => {
 
   function createRoom(){
     if(code.length > 4){ //Change the condition to actual check
-      //Enter
+      navigate('/lesson');
     } else {
       textAnimate.start({x: 0, opacity: 1}).then(setTimeout(() => {textAnimate.start({x: 100, opacity: 0})}, 2000));
     }
