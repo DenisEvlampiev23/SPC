@@ -5,12 +5,21 @@ import { Login } from './pages/Login';
 import { EnterRoom } from './pages/EnterRoom';
 import { CreateRoom } from './pages/CreateRoom';
 import { Room } from './pages/Room';
+import { CreateMaterial } from './pages/CreateMaterial';
 import server from './server';
 
 function App() {
-  server.userCredentials = sessionStorage.getItem('userCredentials');
-  server.refUser = sessionStorage.getItem('refUser');
-  server.isUserTeacher = sessionStorage.getItem('isUserTeacher');
+  const updateValues = async () => {
+    server.userCredentials = sessionStorage.getItem('userCredentials');
+    server.refUser = sessionStorage.getItem('refUser');
+    server.isUserTeacher = sessionStorage.getItem('isUserTeacher');
+    server.userName = sessionStorage.getItem('userName');
+    server.activeRoomCode = sessionStorage.getItem('activeRoomCode');
+    server.refActiveRoom = sessionStorage.getItem('refActiveRoom');
+    server.roomData = sessionStorage.getItem('roomData');
+  }
+
+  updateValues();
 
   return (
     <div>
@@ -22,6 +31,7 @@ function App() {
           <Route path='/enterRoom' element={<EnterRoom />}/>
           <Route path='/createRoom' element={<CreateRoom />}/>
           <Route path='/lesson' element={<Room />}/>
+          <Route path='/createMaterial' element={<CreateMaterial />}/>
         </Routes>
       </BrowserRouter>
     </div>

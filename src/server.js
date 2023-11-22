@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { child, get, getDatabase, onValue, ref, set } from "firebase/database";
+import { child, get, getDatabase, onValue, ref, remove, set } from "firebase/database";
 
 const firebaseConfig = {
     apiKey: "AIzaSyD3Nyj6UN_64FKEY-YguEapyvlSMKNYPaE",
@@ -21,18 +21,28 @@ class Server{
     refDatabase = ref(this.database);
     analytics = getAnalytics(this.app);
     userCredentials;
-    refUser = sessionStorage.getItem('refUser');
-    isUserTeacher = sessionStorage.getItem('isUserTeacher');
+    refUser;
+    isUserTeacher;
+    userName;
+    activeRoomCode;
+    refActiveRoom;
+    roomData;
 
     logInEmail = async (email, password) => {
         try{
-            this.userCredentials =  (await signInWithEmailAndPassword(this.auth, email, password)).user;
+            email = email.trim();
+            password = password.trim();
+
+            this.userCredentials = (await signInWithEmailAndPassword(this.auth, email, password)).user;
             this.refUser = ref(this.database, '/users/' + this.userCredentials.uid);
             sessionStorage.setItem('userCredentials', this.userCredentials);
             sessionStorage.setItem('refUser', this.refUser);
 
             this.isUserTeacher = await this.getIsUserTeacher();
             sessionStorage.setItem('isUserTeacher', this.isUserTeacher);
+
+            this.userName = await this.getUserName();
+            sessionStorage.setItem('userName', this.userName);
 
             return 'OK';
         }
@@ -44,6 +54,10 @@ class Server{
 
     signUpEmail = async (email, password, name, isTeacher) => {
         try{
+            email = email.trim();
+            name = name.trim();
+            password = password.trim();
+
             this.userCredentials = (await createUserWithEmailAndPassword(this.auth, email, password)).user;
             this.refUser = ref(this.database, '/users/' + this.userCredentials.uid);
             sessionStorage.setItem('userCredentials', this.userCredentials);
@@ -72,11 +86,12 @@ class Server{
             await get(child(this.refUser, '/isTeacher'))
             .then((snapshot) => {
                 responce = snapshot.val();
-            })
+            });
         } catch(e){
             console.log(e);
         }
         
+        console.log(responce);
         return responce;
     }
 
@@ -87,6 +102,7 @@ class Server{
             await get(child(this.refUser, '/fullName'))
             .then((snapshot) => {
                 responce = snapshot.val();
+                this.userName = responce;
             })
         } catch(e){
             console.log(e);
@@ -94,7 +110,212 @@ class Server{
         
         return responce;
     }
+
+    async createRoom(code){
+        try{
+            code = code.trim();
+            let isInUse = false;
+
+            await get(child(this.refDatabase, `/rooms/${code}`))
+            .then(snapshot => {
+                if(snapshot.val() !== null && (new Date().getTime() - snapshot.val().creationDate <= 7200000 && snapshot.val().teacherName !== this.userName)){
+                    console.log();
+                    isInUse = true;
+                    return 'CODE IN USE';
+                }
+            });
+
+            if(isInUse)
+                return 'CODE IN USE';
+
+            set(ref(this.database, `/rooms/${code}`), {
+                code: code,
+                teacherName: await this.userName,
+                creationDate: new Date().getTime()
+            })
+
+            this.activeRoomCode = code;
+            this.refActiveRoom = ref(this.database, '/rooms/'+code);
+            
+            this.roomData = await this.getRoomData();
+            sessionStorage.setItem('roomData', this.roomData)
+
+            this.subscribeOnRoomChanges((data) => {
+                this.roomData = data;
+                sessionStorage.setItem('roomData', data)
+            });
+
+            sessionStorage.setItem('activeRoomCode', this.activeRoomCode);
+            sessionStorage.setItem('refActiveRoom', this.refActiveRoom);
+
+            return 'OK';
+        } catch(e){
+            console.log(e);
+        }
+    }
+
+    async getRoomData(){
+        try{
+            await get(child(this.refDatabase, `/rooms/${this.activeRoomCode}`))
+            .then((snapshot) => {
+                const data = snapshot.val();
+    
+                return data;
+            });
+        } catch(e){
+            console.log(e);
+
+            return {
+                code: 'Error',
+                teacherName: 'Error'
+            }
+        }
+    }
+
+    subscribeOnRoomChanges(onChange=(data)=>{}){
+        try{
+            onValue(child(this.refDatabase, `/rooms/${this.activeRoomCode}`), (snapshot) => {
+                const data = snapshot.val();
+    
+                onChange(data);
+            });
+        } catch(e){
+            console.log(e);
+        }
+    }
+
+    async dissolveRoom(){
+        try{
+            remove(child(this.refDatabase, `/rooms/${this.activeRoomCode}`));
+
+            sessionStorage.removeItem('activeRoomCode');
+            sessionStorage.removeItem('refActiveRoom');
+        } catch(e){
+            console.log(e);
+        }
+    }
+
+    async createTest(title='Empty title', questions=[]){
+        try{
+            let tests = [];
+
+            await get(child(this.refDatabase, `/rooms/${this.activeRoomCode}/tests`))
+            .then(snapshot => {
+                const data = snapshot.val();
+
+                data === null
+                ? tests = []
+                : tests = data;
+            })
+
+            tests.push({
+                title: title,
+                questions: questions,
+                usersCompleted: []
+            })
+
+            set(ref(this.database, `/rooms/${this.activeRoomCode}/tests`), tests);
+        } catch(e){
+            console.log(e);
+        }
+    }
+
+    async getTests(){
+        try{
+            await get(child(this.refDatabase, `/rooms/${this.activeRoomCode}/tests`))
+            .then(snapshot => {
+                const data = snapshot.val();
+    
+                if(data === null){
+                    return [];
+                } else {
+                    return data;
+                }
+            });
+        } catch(e){
+            console.log(e);
+            return [];
+        }
+    }
+
+    async createMaterial(title='Untitled', description=null, image=null){
+        try{
+            let materials = [];
+
+            await get(child(this.refDatabase, `/users/${this.userCredentials.uid}/materials`))
+            .then(snapshot => {
+                const data = snapshot.val();
+
+                data === null
+                ? materials = []
+                : materials = data;
+            })
+
+            materials.push({
+                title: title,
+                description: description,
+                image: image
+            });
+
+            set(ref(this.database, `/users/${this.userCredentials.uid}/materials`), materials);
+        } catch(e){
+            console.log(e);
+        }
+    }
+
+    async useMaterial(title){
+        try{
+            let material = null;
+            let usedMaterials = [];
+
+            await get(child(this.refDatabase, `/users/${this.userCredentials.uid}/materials`))
+            .then(snapshot => {
+                const data = snapshot.val();
+
+                if(data !== null && data !== undefined){
+                    data.forEach(currentMaterial => {
+                       if(currentMaterial.title === title)
+                            material = currentMaterial;
+                    });
+                }
+            });
+
+            await get(child(this.refDatabase, `/rooms/${this.activeRoomCode}/materials`))
+            .then(snapshot => {
+                const data = snapshot.val();
+
+                if(data !== null && data !== undefined){
+                    usedMaterials = data;
+
+                }
+            });
+
+            usedMaterials.push(material);
+
+            console.log(ref(this.database, `/rooms/${this.activeRoomCode}/materials`));
+            set(ref(this.database, `/rooms/${this.activeRoomCode}/materials/`), usedMaterials);
+        } catch(e){
+            console.log(e);
+        }
+    }
+
+    async getUserMaterials(){
+        try{
+            await get(child(this.refDatabase, `/users/${this.userCredentials.uid}/materials`))
+            .then(snapshot => {
+                const data = snapshot.val();
+    
+                if(data === null){
+                    return [];
+                } else {
+                    return data;
+                }
+            });
+        } catch(e){
+            console.log(e);
+            return [];
+        }
+    }
 }
 
 export default new Server();
-

@@ -4,17 +4,26 @@ import { Button } from '../components/Button';
 import { ButtonText } from '../components/ButtonText';
 import { motion, useAnimationControls } from 'framer-motion';
 import { useNavigate } from 'react-router';
+import server from '../server';
 
 export const CreateRoom = () => {
   const navigate = useNavigate();
   const textAnimate = useAnimationControls();
+  const inputAnimate = useAnimationControls();
 
   const [code, setCode] = useState('');
 
   const [borderName, setBorderName] = useState(false);
 
-  function createRoom(){
-    if(code.length > 4){ //Change the condition to actual check
+  async function createRoom(){
+    if(code === ''){
+      inputAnimate.start({borderColor: '#FA6868', scale: 1.05, y: 0}).then(() => inputAnimate.start({borderColor: '#e5e7eb', scale: 1, y: 0}));
+      return;
+    }
+
+    const responce = await server.createRoom(code);
+
+    if(responce === 'OK'){ 
       navigate('/lesson');
     } else {
       textAnimate.start({x: 0, opacity: 1}).then(setTimeout(() => {textAnimate.start({x: 100, opacity: 0})}, 2000));
@@ -35,7 +44,8 @@ export const CreateRoom = () => {
               Этот код уже занят</motion.div>
 
           <motion.input 
-            animate={{ borderColor: borderName ? '#4355FF' : '#E8E8E8'}} 
+            animate={inputAnimate}
+            whileFocus={{ borderColor: borderName ? '#4355FF' : '#E8E8E8'}} 
             onFocus={() => {setBorderName(true)}} onBlur={() => {
               setBorderName(false);
             }} 
