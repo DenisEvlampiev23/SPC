@@ -46,9 +46,6 @@ export const CreateRoom = () => {
           <motion.input 
             animate={inputAnimate}
             whileFocus={{ borderColor: borderName ? '#4355FF' : '#E8E8E8'}} 
-            onFocus={() => {setBorderName(true)}} onBlur={() => {
-              setBorderName(false);
-            }} 
             whileTap={{scale: 0.98}}
             onChange={e => setCode(e.target.value)}
             placeholder='Код комнаты' 

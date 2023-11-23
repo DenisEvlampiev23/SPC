@@ -21,6 +21,7 @@ class Server{
     refDatabase = ref(this.database);
     analytics = getAnalytics(this.app);
     userCredentials;
+    uid;
     refUser;
     isUserTeacher;
     userName;
@@ -34,9 +35,11 @@ class Server{
             password = password.trim();
 
             this.userCredentials = (await signInWithEmailAndPassword(this.auth, email, password)).user;
-            this.refUser = ref(this.database, '/users/' + this.userCredentials.uid);
-            sessionStorage.setItem('userCredentials', this.userCredentials);
+            this.uid = this.userCredentials.uid;
+            this.refUser = ref(this.database, '/users/' + this.uid);
             sessionStorage.setItem('refUser', this.refUser);
+            sessionStorage.setItem('userCredentials', this.userCredentials);
+            sessionStorage.setItem('uid', this.userCredentials.uid);
 
             this.isUserTeacher = await this.getIsUserTeacher();
             sessionStorage.setItem('isUserTeacher', this.isUserTeacher);
@@ -59,8 +62,10 @@ class Server{
             password = password.trim();
 
             this.userCredentials = (await createUserWithEmailAndPassword(this.auth, email, password)).user;
+            this.uid = this.userCredentials.uid;
             this.refUser = ref(this.database, '/users/' + this.userCredentials.uid);
             sessionStorage.setItem('userCredentials', this.userCredentials);
+            sessionStorage.setItem('uid', this.uid);
             sessionStorage.setItem('refUser', this.refUser);
 
             set(this.refUser, {
@@ -91,7 +96,6 @@ class Server{
             console.log(e);
         }
         
-        console.log(responce);
         return responce;
     }
 
@@ -119,7 +123,6 @@ class Server{
             await get(child(this.refDatabase, `/rooms/${code}`))
             .then(snapshot => {
                 if(snapshot.val() !== null && (new Date().getTime() - snapshot.val().creationDate <= 7200000 && snapshot.val().teacherName !== this.userName)){
-                    console.log();
                     isInUse = true;
                     return 'CODE IN USE';
                 }
@@ -151,6 +154,44 @@ class Server{
             return 'OK';
         } catch(e){
             console.log(e);
+        }
+    }
+
+    async joinRoom(code='error'){
+        try{
+            code = code.trim();
+
+            let isInUse = true;
+
+            await get(child(this.refDatabase, `/rooms/${code}`))
+            .then(snapshot => {
+                const data = snapshot.val();
+
+                if(data === null){
+                    isInUse = false;
+                }
+            });
+
+            if(isInUse === false)
+                return "THE CODE ISNT IN USE";
+
+            this.activeRoomCode = code;
+            this.refActiveRoom = ref(this.database, '/rooms/'+code);
+            sessionStorage.setItem('activeRoomCode', this.activeRoomCode);
+            sessionStorage.setItem('refActiveRoom', this.refActiveRoom);
+    
+            this.roomData = await this.getRoomData();
+            sessionStorage.setItem('roomData', this.roomData)
+    
+            this.subscribeOnRoomChanges((data) => {
+                this.roomData = data;
+                sessionStorage.setItem('roomData', data)
+            });
+    
+            return 'OK';
+        } catch(e){
+            console.log(e);
+            return e;
         }
     }
 
@@ -242,7 +283,7 @@ class Server{
         try{
             let materials = [];
 
-            await get(child(this.refDatabase, `/users/${this.userCredentials.uid}/materials`))
+            await get(child(this.refDatabase, `/users/${this.uid}/materials`))
             .then(snapshot => {
                 const data = snapshot.val();
 
@@ -257,7 +298,7 @@ class Server{
                 image: image
             });
 
-            set(ref(this.database, `/users/${this.userCredentials.uid}/materials`), materials);
+            set(ref(this.database, `/users/${this.uid}/materials`), materials);
         } catch(e){
             console.log(e);
         }
@@ -268,7 +309,7 @@ class Server{
             let material = null;
             let usedMaterials = [];
 
-            await get(child(this.refDatabase, `/users/${this.userCredentials.uid}/materials`))
+            await get(child(this.refDatabase, `/users/${this.uid}/materials`))
             .then(snapshot => {
                 const data = snapshot.val();
 
@@ -286,36 +327,53 @@ class Server{
 
                 if(data !== null && data !== undefined){
                     usedMaterials = data;
-
                 }
             });
 
             usedMaterials.push(material);
 
-            console.log(ref(this.database, `/rooms/${this.activeRoomCode}/materials`));
             set(ref(this.database, `/rooms/${this.activeRoomCode}/materials/`), usedMaterials);
         } catch(e){
             console.log(e);
         }
     }
 
-    async getUserMaterials(){
+    async unpublishMaterial(title=''){
         try{
-            await get(child(this.refDatabase, `/users/${this.userCredentials.uid}/materials`))
+            let usedMaterials = [];
+
+            await get(child(this.refDatabase, `/rooms/${this.activeRoomCode}/materials`))
             .then(snapshot => {
                 const data = snapshot.val();
-    
+
+                usedMaterials = data;
+
+                usedMaterials = usedMaterials.filter(material => material.title !== title);
+            });
+
+            set(ref(this.database, `/rooms/${this.activeRoomCode}/materials/`), usedMaterials);
+        } catch(e){
+            console.log(e);
+        }
+    }
+
+    getUserMaterials = new Promise((resolve, reject) => {
+        try{
+            get(child(this.refDatabase, `/users/${this.uid}/materials`))
+            .then(snapshot => {
+                const data = snapshot.val();
+
                 if(data === null){
-                    return [];
+                    resolve([]);
                 } else {
-                    return data;
+                    resolve(data);
                 }
             });
         } catch(e){
             console.log(e);
-            return [];
+            reject(e);
         }
-    }
+    });
 }
 
 export default new Server();

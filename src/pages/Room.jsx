@@ -15,9 +15,21 @@ export const Room = () => {
     const [materials, setMaterials] = useState([]);
 
     useEffect(() => {
+        server.userCredentials = sessionStorage.getItem('userCredentials');
+        server.refUser = sessionStorage.getItem('refUser');
+        server.isUserTeacher = sessionStorage.getItem('isUserTeacher');
+        server.userName = sessionStorage.getItem('userName');
+        server.activeRoomCode = sessionStorage.getItem('activeRoomCode');
+        server.refActiveRoom = sessionStorage.getItem('refActiveRoom');
+        server.roomData = sessionStorage.getItem('roomData');
+        server.uid = sessionStorage.getItem('uid');
+
         setRoomCode(server.activeRoomCode);
 
         server.subscribeOnRoomChanges((data) => {
+            if(data === null)
+                return;
+
             if(data.tests !== null && data.tests !== undefined){
                 sessionStorage.setItem('tests', data.tests);
                 sessionStorage.setItem('materials', data.materials);
@@ -26,7 +38,6 @@ export const Room = () => {
             setRoomCode(data.code);
             setTests(data.tests);
             setMaterials(data.materials)
-            setMaterials(data.materials);
         });
     }, []);
 
@@ -48,7 +59,7 @@ export const Room = () => {
 
                     <div className='col-auto flex-wrap flex overflow-x-auto w-full'>
                         {
-                            tests !== undefined
+                            tests !== undefined && tests !== null
                             ? tests.map((test) => {
                                 return <Card className='xs:w-80' key={test.title} text={test.title}>
                                     {
@@ -78,9 +89,9 @@ export const Room = () => {
                     }
                 </div>
 
-                <div className='mt-8'>
+                <div className='mt-8 w-screen'>
                     <motion.div layout className="text-black text-4xl font-semibold font-montserrat mb-5 z-30">Материалы</motion.div>
-                    <div className='md:flex flex-row col-auto flex-wrap flex overflow-x-auto w-full'>
+                    <div className='flex-wrap flex overflow-x-auto w-full'>
                         {
                             materials !== undefined
                             ? materials.map((material) => {
@@ -88,11 +99,11 @@ export const Room = () => {
                                     {
                                         server.isUserTeacher === 'true'
                                         ? <>
-                                            <Button text='Редактировать' className='mt-5'/>
-                                            <ButtonHollow text='Убрать' color='#DF0000' className='mt-3'/>
+                                            <Button text='Редактировать' onClick={() => navigate('/createMaterial', {state: {material: material}})} className='mt-5'/>
+                                            <ButtonHollow text='Убрать' onClick={() => server.unpublishMaterial(material.title)} color='#DF0000' className='mt-3'/>
                                         </>
                                         : <>
-                                            <Button text='Посмотреть' className='mt-5'/>
+                                            <Button text='Посмотреть' onClick={() => navigate('/viewMaterial', {state: {material: material}})} className='mt-5'/>
                                         </>
                                     }
                                 </Card>

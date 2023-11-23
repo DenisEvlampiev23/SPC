@@ -6,6 +6,7 @@ import { EnterRoom } from './pages/EnterRoom';
 import { CreateRoom } from './pages/CreateRoom';
 import { Room } from './pages/Room';
 import { CreateMaterial } from './pages/CreateMaterial';
+import { ViewMaterial } from './pages/ViewMaterial';
 import server from './server';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
     server.activeRoomCode = sessionStorage.getItem('activeRoomCode');
     server.refActiveRoom = sessionStorage.getItem('refActiveRoom');
     server.roomData = sessionStorage.getItem('roomData');
+    server.uid = sessionStorage.getItem('uid');
   }
 
   updateValues();
@@ -32,6 +34,7 @@ function App() {
           <Route path='/createRoom' element={<CreateRoom />}/>
           <Route path='/lesson' element={<Room />}/>
           <Route path='/createMaterial' element={<CreateMaterial />}/>
+          <Route path='/viewMaterial' element={<ViewMaterial />}/>
         </Routes>
       </BrowserRouter>
     </div>
