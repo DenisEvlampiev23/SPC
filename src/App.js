@@ -7,6 +7,7 @@ import { CreateRoom } from './pages/CreateRoom';
 import { Room } from './pages/Room';
 import { CreateMaterial } from './pages/CreateMaterial';
 import { ViewMaterial } from './pages/ViewMaterial';
+import { CreateTest } from './pages/CreateTest';
 import server from './server';
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
           <Route path='/lesson' element={<Room />}/>
           <Route path='/createMaterial' element={<CreateMaterial />}/>
           <Route path='/viewMaterial' element={<ViewMaterial />}/>
+          <Route path='/createTest' element={<CreateTest />}/>
         </Routes>
       </BrowserRouter>
     </div>

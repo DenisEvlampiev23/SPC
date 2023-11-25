@@ -17,6 +17,7 @@ export const CreateMaterial = () => {
     const [description, setDescription] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [historyMaterials, setHistoryMaterials] = useState([]);
+    const [fileTitle, setFileTitle] = useState('');
 
     const hiddenFileInput = useRef(null);
     
@@ -29,6 +30,7 @@ export const CreateMaterial = () => {
         if(material !== null && material !== undefined){
             setEditableMaterial(state.state.material);
             setTitle(material.title);
+            setFileTitle(material.title);
             setDescription(material.description);
 
             if(material.image !== null && material.image !== undefined){
@@ -44,7 +46,7 @@ export const CreateMaterial = () => {
                     if(data === null){
                         setHistoryMaterials([]);
                     } else {
-                        setHistoryMaterials(data);
+                        setHistoryMaterials(data.reverse());
                     }
                 });
         } catch(e){
@@ -60,7 +62,6 @@ export const CreateMaterial = () => {
                 .replace('data:', '')
                 .replace(/^.+,/, '');
     
-            console.log(`data:image/png;base64,${base64String}`);
             setImageFile(`data:image/png;base64,${base64String}`);
         };
         
@@ -97,7 +98,7 @@ export const CreateMaterial = () => {
                     <ButtonText text='Назад' onClick={() => {navigate('/lesson')}} className="inline-block"/>
 
                     <Card text='' className='mt-5 xs:w-80'>
-                        <p className="text-black text-3xl font-semibold font-montserrat">Новый материал</p>
+                        <p className="text-black text-3xl font-semibold font-montserrat">{fileTitle !== '' ? fileTitle : "Новый материал"}</p>
 
                         <motion.input 
                             whileTap={{scale: 0.98}}
@@ -147,7 +148,7 @@ export const CreateMaterial = () => {
                             <Button text='Использовать' onClick={() => {publishMaterial(material.title)}} className='mt-5'/>
                             <div className='w-60'/>
                         </Card>
-                        }) : <></>
+                        }) : <motion.p className="w-80 text-center text-neutral-500 text-lg font-base mt-5 font-Montserrat mx-auto">Здесь пока что ничего нет.</motion.p>
                     }
                     </div>
                 </div>

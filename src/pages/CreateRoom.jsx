@@ -21,7 +21,7 @@ export const CreateRoom = () => {
       return;
     }
 
-    const responce = await server.createRoom(code);
+    const responce = await server.createRoom(code.trim().toLowerCase().replace('.', '').replace('/', ''));
 
     if(responce === 'OK'){ 
       navigate('/lesson');

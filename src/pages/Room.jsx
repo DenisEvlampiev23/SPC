@@ -37,7 +37,10 @@ export const Room = () => {
 
             setRoomCode(data.code);
             setTests(data.tests);
-            setMaterials(data.materials)
+
+            const processedMaterials = data.materials === undefined ? [] : data.materials.reverse();
+            setMaterials(processedMaterials)
+
         });
     }, []);
 
@@ -53,9 +56,9 @@ export const Room = () => {
     return (
         <div className='w-screen grid justify-items-center'>
             <div className='absolute bg-back w-full h-full -z-10'/>
-            <div className='mt-8 w-screen h-full pl-3 flex flex-col'>
+            <div className='mt-8 w-screen h-full px-3 flex flex-col'>
                 <div>
-                    <p className="text-black text-4xl font-semibold font-montserrat mb-5">Тесты</p>
+                    <motion.p layout className="text-black text-4xl font-semibold font-montserrat mb-5">Тесты</motion.p>
 
                     <div className='col-auto flex-wrap flex overflow-x-auto w-full'>
                         {
@@ -84,7 +87,7 @@ export const Room = () => {
 
                     {
                         server.isUserTeacher === 'true'
-                        ? <ButtonText text='Добавить тест' className='mt-5 xs:inline-block'/>
+                        ? <ButtonText text='Добавить тест' onClick={() => {navigate('/createTest');}} className='mt-5 xs:inline-block'/>
                         : <></>
                     }
                 </div>

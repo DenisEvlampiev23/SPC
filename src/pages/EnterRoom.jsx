@@ -16,11 +16,10 @@ export const EnterRoom = () => {
   async function joinRoom(){
     if(code === ''){
       inputAnimate.start({borderColor: '#FA6868', scale: 1.05}).then(() => inputAnimate.start({borderColor: '#e5e7eb', scale: 1}));
-      inputAnimate.start({})
       return;
     }
 
-    const responce = await server.joinRoom(code);
+    const responce = await server.joinRoom(code.trim().toLowerCase().replace('.', '').replace('/', ''));
 
     if(responce === 'OK'){
       navigate('/lesson');

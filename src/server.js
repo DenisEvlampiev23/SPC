@@ -4,14 +4,13 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } f
 import { child, get, getDatabase, onValue, ref, remove, set } from "firebase/database";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyD3Nyj6UN_64FKEY-YguEapyvlSMKNYPaE",
-    authDomain: "spc-ea23f.firebaseapp.com",
-    projectId: "spc-ea23f",
-    storageBucket: "spc-ea23f.appspot.com",
-    messagingSenderId: "506152064055",
-    appId: "1:506152064055:web:c1546bf753777cb177dbb2",
-    measurementId: "G-0JX5QE8MEY",
-    databaseURL: 'https://spc-ea23f-default-rtdb.europe-west1.firebasedatabase.app/'
+    apiKey: "AIzaSyAxveigxfxYbu9ZuN7BUXxY2o-mVwtcbi0",
+    authDomain: "vedaj-631f5.firebaseapp.com",
+    databaseURL: "https://vedaj-631f5-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "vedaj-631f5",
+    storageBucket: "vedaj-631f5.appspot.com",
+    messagingSenderId: "619328524013",
+    appId: "1:619328524013:web:0392f099a030c8b0ed46e4"
   };
 
 class Server{
@@ -128,7 +127,7 @@ class Server{
                 }
             });
 
-            if(isInUse)
+            if(isInUse === true)
                 return 'CODE IN USE';
 
             set(ref(this.database, `/rooms/${code}`), {
@@ -240,22 +239,74 @@ class Server{
         try{
             let tests = [];
 
-            await get(child(this.refDatabase, `/rooms/${this.activeRoomCode}/tests`))
+            await get(child(this.database, `/users/${this.uid}/materials`))
             .then(snapshot => {
                 const data = snapshot.val();
 
                 data === null
                 ? tests = []
                 : tests = data;
-            })
+            });
 
             tests.push({
-                title: title,
-                questions: questions,
-                usersCompleted: []
-            })
+                fileTitle: title,
+                questions: questions
+            });
 
-            set(ref(this.database, `/rooms/${this.activeRoomCode}/tests`), tests);
+            set(ref(this.database, `/users/${this.uid}/tests`), tests);
+        } catch(e){
+            console.log(e);
+        }
+    }
+
+    async useTest(title){
+        try{
+            let test = null;
+            let usedTests = [];
+
+            await get(child(this.refDatabase, `/users/${this.uid}/tests`))
+            .then(snapshot => {
+                const data = snapshot.val();
+
+                if(data !== null && data !== undefined){
+                    data.forEach(currentTest => {
+                       if(currentTest.title === title)
+                            test = currentTest;
+                    });
+                }
+            });
+
+            await get(child(this.refDatabase, `/rooms/${this.activeRoomCode}/tests`))
+            .then(snapshot => {
+                const data = snapshot.val();
+
+                if(data !== null && data !== undefined){
+                    usedTests = data;
+                }
+            });
+
+            usedTests.push(test);
+
+            set(ref(this.database, `/rooms/${this.activeRoomCode}/tests/`), usedTests);
+        } catch(e){
+            console.log(e);
+        }
+    }
+
+    async unpublishTest(title=''){
+        try{
+            let usedTests = [];
+
+            await get(child(this.refDatabase, `/rooms/${this.activeRoomCode}/tests`))
+            .then(snapshot => {
+                const data = snapshot.val();
+
+                usedTests = data;
+
+                usedTests = usedTests.filter(test => test.title !== title);
+            });
+
+            set(ref(this.database, `/rooms/${this.activeRoomCode}/tests/`), usedTests);
         } catch(e){
             console.log(e);
         }
