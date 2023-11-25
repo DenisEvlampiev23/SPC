@@ -235,11 +235,11 @@ class Server{
         }
     }
 
-    async createTest(title='Empty title', questions=[]){
+    async createTest(title='Новый тест', questions=[]){
         try{
             let tests = [];
 
-            await get(child(this.database, `/users/${this.uid}/materials`))
+            await get(child(this.refDatabase, `/users/${this.uid}/tests`))
             .then(snapshot => {
                 const data = snapshot.val();
 
@@ -248,15 +248,44 @@ class Server{
                 : tests = data;
             });
 
+            questions.forEach((question, index) => {
+                questions[index].answers = question.answers.sort(() => Math.random() - 0.5);
+            });
+
             tests.push({
                 fileTitle: title,
-                questions: questions
+                questions: questions,
+                students: []
             });
 
             set(ref(this.database, `/users/${this.uid}/tests`), tests);
         } catch(e){
             console.log(e);
         }
+    }
+
+    async completeTest(fileTitle='', answers=[]){
+        let tests = [];
+
+        const student = {
+            name: await this.userName,
+            givenAnswers: answers
+        }
+
+        await get(child(this.refDatabase, `/rooms/${this.activeRoomCode}/tests`))
+        .then(snapshot => {
+            const data = snapshot.val();
+
+            tests = data;
+        });
+
+        const test = tests[tests.findIndex(test => test.fileTitle === fileTitle)];
+        if(test.students === undefined){
+            test.students = [student];
+        }   else {
+            test.students.push(student);
+        }
+        set(ref(this.database, `/rooms/${this.activeRoomCode}/tests`), tests);
     }
 
     async useTest(title){
@@ -270,7 +299,7 @@ class Server{
 
                 if(data !== null && data !== undefined){
                     data.forEach(currentTest => {
-                       if(currentTest.title === title)
+                       if(currentTest.fileTitle === title)
                             test = currentTest;
                     });
                 }
@@ -303,7 +332,7 @@ class Server{
 
                 usedTests = data;
 
-                usedTests = usedTests.filter(test => test.title !== title);
+                usedTests = usedTests.filter(test => test.fileTitle !== title);
             });
 
             set(ref(this.database, `/rooms/${this.activeRoomCode}/tests/`), usedTests);
@@ -330,7 +359,7 @@ class Server{
         }
     }
 
-    async createMaterial(title='Untitled', description=null, image=null){
+    async createMaterial(title='Новый материал', description=null, image=null){
         try{
             let materials = [];
 

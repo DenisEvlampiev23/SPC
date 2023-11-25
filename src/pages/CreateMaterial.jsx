@@ -13,7 +13,7 @@ export const CreateMaterial = () => {
     const state = useLocation();
     
     const [editableMaterial, setEditableMaterial] = useState(null);
-    const [title, setTitle] = useState('Untitled');
+    const [title, setTitle] = useState('Новый материал');
     const [description, setDescription] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [historyMaterials, setHistoryMaterials] = useState([]);

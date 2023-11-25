@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 export const Room = () => {
     const navigate = useNavigate();
 
-    const [roomCode, setRoomCode] = useState('Room Code');
+    const [roomCode, setRoomCode] = useState('Room');
     const [tests, setTests] = useState([]);
     const [materials, setMaterials] = useState([]);
 
@@ -62,41 +62,41 @@ export const Room = () => {
 
                     <div className='col-auto flex-wrap flex overflow-x-auto w-full'>
                         {
-                            tests !== undefined && tests !== null
+                            tests !== undefined && tests !== null && tests.length !== 0
                             ? tests.map((test) => {
-                                return <Card className='xs:w-80' key={test.title} text={test.title}>
+                                return <Card className='xs:w-80 xs:mr-3' key={Math.random()} text={test.fileTitle}>
                                     {
                                         server.isUserTeacher === 'true'
                                         ? <>
-                                            <Button text='Редактировать' className='mt-5'/>
-                                            <ButtonHollow text='Убрать' color='#FA6868' className='mt-3'/>
+                                            <Button text='Редактировать'onClick={() => navigate('/createTest', {state: {test: test}})} className='mt-5'/>
+                                            <ButtonHollow text='Убрать' onClick={() => {server.unpublishTest(test.fileTitle)}} color='#FA6868' className='mt-3'/>
                                         </> : <>
                                             {
                                                 test !== undefined && test !== null && server.userName !== null && test.usersCompleted !== undefined
                                                 ? test.usersCompleted.find(server.userName) === undefined
-                                                    ? <Button text='Начать' className='mt-5'/>
-                                                    : <ButtonHollow text='Ещё раз' className='mt-5'/>
-                                                : <Button text='Начать' className='mt-5'/>
+                                                    ? <Button text='Начать' onClick={() => {navigate('/viewTest', {state: test})}} className='mt-5'/>
+                                                    : <ButtonHollow text='Ещё раз' onClick={() => {navigate('/viewTest', {state: test})}} className='mt-5'/>
+                                                : <Button text='Начать' onClick={() => {navigate('/viewTest', {state: test})}} className='mt-5'/>
                                             }
                                         </>
                                     }
                                 </Card>
-                            }) : <></>
+                            }) : <motion.p layout className="w-80 text-center text-neutral-500 text-lg font-base mt-5 font-Montserrat mx-auto">Здесь пока что ничего нет.</motion.p>
                         }
                     </div>
 
                     {
                         server.isUserTeacher === 'true'
-                        ? <ButtonText text='Добавить тест' onClick={() => {navigate('/createTest');}} className='mt-5 xs:inline-block'/>
+                        ? <ButtonText text='Добавить тест' onClick={() => {navigate('/createTest');}} className='mt-5 inline-block'/>
                         : <></>
                     }
                 </div>
 
-                <div className='mt-8 w-screen'>
+                <div className='mt-8'>
                     <motion.div layout className="text-black text-4xl font-semibold font-montserrat mb-5 z-30">Материалы</motion.div>
                     <div className='flex-wrap flex overflow-x-auto w-full'>
                         {
-                            materials !== undefined
+                            materials !== undefined && materials !== null && materials.length !== 0
                             ? materials.map((material) => {
                                 return <Card className='xs:w-80' text={material.title} key={material.title}>
                                     {
@@ -110,21 +110,21 @@ export const Room = () => {
                                         </>
                                     }
                                 </Card>
-                            }) : <></>
+                            }) : <motion.p layout className="xs:w-80 text-center text-neutral-500 text-lg font-base mt-5 font-Montserrat mx-auto">Здесь пока что ничего нет.</motion.p>
                         }
                         
                     </div>
 
                     {
                         server.isUserTeacher === 'true'
-                        ? <ButtonText text='Добавить материал' onClick={() => {navigate('/createMaterial')}} className='mt-5 xs:inline-block'/>
+                        ? <ButtonText text='Добавить материал' onClick={() => {navigate('/createMaterial')}} className='mt-5 inline-block'/>
                         : <></>
                     }
                 </div>
 
                 <div className='h-full flex flex-col pb-8'>
                     <div className='mt-auto mb-8 flex flex-col items-center'>
-                        <p className="text-neutral-500 text-base font-normal font-montserrat">{roomCode}</p>
+                        <motion.p layout className="text-neutral-500 w-32 text-center text-base font-normal font-montserrat">{roomCode}</motion.p>
                         <ButtonText text='Выйти из комнаты' onClick={quitRoom} className='mt-3'/>
                     </div>
                 </div>

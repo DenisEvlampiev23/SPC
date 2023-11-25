@@ -10,22 +10,32 @@ import { child, get } from 'firebase/database'
 
 export const CreateTest = () => {
     const navigate = useNavigate();
+    const state = useLocation();
 
     const [, forceUpdate] = useState();
-    const [fileTitle, setFileTitle] = useState(null);
+    const [fileTitle, setFileTitle] = useState(state.state === null ? 'Новый тест' : state.state.test.fileTitle);
     const [questions, setQuestions] = useState([{
-        title: null,
+        title: '',
         description: null,
         image: null,
-        answers: [null]
+        answers: ['']
     }]);
     const [historyTests, setHistoryTests] = useState([]);
 
     const hiddenFileInput = useRef(null);
 
     useEffect(() => {
+        let test = null;
+
+        if(state.state !== null && state.state !== undefined){
+            test = state.state.test;
+            
+            setFileTitle(test.fileTitle !== null ? test.fileTitle : '');
+            setQuestions(test.questions !== undefined ? test.questions : []);
+        }
+
         try{
-            get(child(server.refDatabase, `/users/${server.uid}/test`))
+            get(child(server.refDatabase, `/users/${server.uid}/tests`))
                 .then(snapshot => {
                     const data = snapshot.val();
         
@@ -41,22 +51,22 @@ export const CreateTest = () => {
     }, []);
 
     const uploadEditedTest = async () => {
-        await server.createTest(fileTitle.trim(), questions);
-        //await server.unpublishTest(editableTestTitle);//editable Test
-        server.useTest(fileTitle.trim());
+        await server.createTest(fileTitle, questions);
+        await server.unpublishTest(state.state.test.fileTitle);
+        server.useTest(fileTitle);
         
         navigate('/lesson');
     }
 
     const uploadTest = async () => {
-        await server.createTest(fileTitle.trim(), questions);
-        server.useTest(fileTitle.trim());
+        await server.createTest(fileTitle, questions);
+        server.useTest(fileTitle);
 
         navigate('/lesson');
     }
 
     const publishTest = async (fileTitle) => {
-        await server.useTest(fileTitle.trim());
+        await server.useTest(fileTitle);
 
         navigate('/lesson');
     }
@@ -68,7 +78,7 @@ export const CreateTest = () => {
             title: null,
             description: null,
             image: null,
-            answers: [null]
+            answers: ['']
         });
 
         setQuestions(modifiedQuestions);
@@ -157,7 +167,7 @@ export const CreateTest = () => {
                 <div className='flex flex-col'>
                     <ButtonText text='Назад' onClick={() => {navigate('/lesson')}} className="inline-block self-start"/>
 
-                    <motion.p className="text-black text-4xl font-semibold font-montserrat mt-3 w-80 break-words self-start">{fileTitle !== null && fileTitle !== '' ? fileTitle : 'Новый тест'}</motion.p>
+                    <motion.p layout className="text-black text-4xl font-semibold font-montserrat mt-3 w-80 break-words self-start">{fileTitle !== null && fileTitle !== '' ? fileTitle : 'Новый тест'}</motion.p>
                     <motion.input 
                         layout
                         whileTap={{scale: 0.98}}
@@ -208,7 +218,7 @@ export const CreateTest = () => {
                                     layout
                                     whileTap={{scale: 0.98}}
                                     whileFocus={{borderColor: '#4355FF'}}
-                                    defaultValue={question.answers[0] !== null ? question.answers[0] : ''}
+                                    defaultValue={question.answers[0] !== null &&  question.answers[0] !== undefined ? question.answers[0] : ''}
                                     onChange={e => {changeQuestionAnswer(e.target.value, index, 0)}}
                                     placeholder='Правильный ответ'  
                                     className="w-full h-10 bg-neutral-100 rounded-xl border border-gray-200 p-2 mt-3 text-lg" />
@@ -230,7 +240,7 @@ export const CreateTest = () => {
                                                     defaultValue={answer !== null ? answer : ''}
                                                     onDoubleClick={() => {deleteQuestionAnswer(index, answerIndex+1)}}
                                                     onChange={e => {changeQuestionAnswer(e.target.value, index, answerIndex+1)}}
-                                                    placeholder='Неправильный вариант'  
+                                                    placeholder='Неправильный ответ'  
                                                     className="w-full h-10 bg-neutral-100 rounded-xl border border-gray-200 p-2 mt-3 text-lg" />
                                             })
                                         }
@@ -248,23 +258,23 @@ export const CreateTest = () => {
                     }
 
                     <Button onClick={() => addQuestion()} text='Добавить вопрос'/>
-                    <ButtonHollow onClick={uploadTest} text='Опубликовать' className='mt-3'/>
+                    <ButtonHollow onClick={state.state === null ? uploadTest : uploadEditedTest} text='Опубликовать' className='mt-3'/>
                 <motion.p layout className="text-black text-3xl font-semibold font-montserrat mt-7">История</motion.p> 
                 </div>
 
                 <div>
-                    <div className='flex flex-nowrap w-screen xs:mx-5 overflow-x-auto bg-scroll'>
+                    <motion.div layout className='flex flex-nowrap w-screen xs:mx-5 overflow-x-auto bg-scroll'>
                     {
                         historyTests !== undefined && historyTests !== null && historyTests.length !== 0
                         ? historyTests.map((test) => {
-                            return <Card text={test.fileTitle} key={Math.random()} className='mt-5 xs:w-80'>
+                            return <Card text={test.fileTitle} key={Math.random()} className='mt-5 xs:ml-3 xs:w-80'>
 
                             <Button text='Использовать' onClick={() => {publishTest(test.fileTitle)}} className='mt-5'/>
                             <div className='w-60'/>
                         </Card>
                         }) : <motion.p layout className="w-80 text-center text-neutral-500 text-lg font-base mt-5 font-Montserrat mx-auto">Здесь пока что ничего нет.</motion.p>
                     }
-                    </div>
+                    </motion.div>
                 </div>
             </div>
         </div>

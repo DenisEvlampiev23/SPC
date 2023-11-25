@@ -9,6 +9,7 @@ import { CreateMaterial } from './pages/CreateMaterial';
 import { ViewMaterial } from './pages/ViewMaterial';
 import { CreateTest } from './pages/CreateTest';
 import server from './server';
+import { ViewTest } from './pages/ViewTest';
 
 function App() {
   const updateValues = async () => {
@@ -37,6 +38,7 @@ function App() {
           <Route path='/createMaterial' element={<CreateMaterial />}/>
           <Route path='/viewMaterial' element={<ViewMaterial />}/>
           <Route path='/createTest' element={<CreateTest />}/>
+          <Route path='/viewTest' element={<ViewTest />}/>
         </Routes>
       </BrowserRouter>
     </div>
